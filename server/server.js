@@ -50,9 +50,11 @@ app.post('/products', async (req, res) => {
     }
 
     const newProduct = { id, name, description, price, units };
-    await collection.insertOne(newProduct);
-    res.status(201).json(newProduct);
+    const result = await collection.insertOne(newProduct);
+    
+    res.status(201).json({ _id: result.insertedId, ...newProduct });  // Use insertedId
   } catch (error) {
+    console.error('Error adding product:', error);
     res.status(500).json({ error: 'Failed to add product' });
   }
 });
@@ -69,6 +71,7 @@ app.delete('/products/:id', async (req, res) => {
 
     res.json({ message: 'Product deleted successfully' });
   } catch (error) {
+    console.error('Error deleting product:', error);
     res.status(500).json({ error: 'Failed to delete product' });
   }
 });
@@ -91,12 +94,15 @@ app.put('/products/:id', async (req, res) => {
     const updatedProduct = await collection.findOne({ _id: new ObjectId(req.params.id) });
     res.json({ message: 'Product updated successfully', product: updatedProduct });
   } catch (error) {
+    console.error('Error updating product:', error);
     res.status(500).json({ error: 'Failed to update product' });
   }
 });
 
-// Start the server
+// Start the server and export it for testing
 const port = 3000;
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
+
+module.exports = server;  // Export the server instance for testing
